@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>CryptoLife • Doodle Jump PRO • Работа • Админка</title>
+    <title>CryptoLife • Doodle Jump • Работа • Админка • История</title>
     <style>
         * { box-sizing: border-box; font-family: system-ui, 'Segoe UI', sans-serif; user-select: none; }
         body { background: radial-gradient(circle at 10% 20%, #0a0f1f, #03060c); margin: 0; min-height: 100vh; padding: 20px; color: #eef2ff; }
@@ -30,9 +30,12 @@
         .game-modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; justify-content: center; align-items: center; backdrop-filter: blur(5px); }
         .game-container { background: #000; border-radius: 32px; overflow: hidden; box-shadow: 0 0 0 3px #facc15; }
         canvas { display: block; margin: 0 auto; background: linear-gradient(180deg, #87CEEB 0%, #E0F6FF 100%); cursor: pointer; }
-        .game-controls { display: flex; justify-content: center; gap: 20px; padding: 12px; background: #1e293b; flex-wrap: wrap; }
+        .game-controls { display: flex; justify-content: center; gap: 30px; padding: 12px; background: #1e293b; }
+        .game-controls button { font-size: 1.8rem; padding: 10px 35px; background: #3b4e6e; }
+        .history-list { max-height: 300px; overflow-y: auto; font-size: 0.75rem; }
+        .history-item { border-bottom: 1px solid #2d3a60; padding: 6px 0; }
         .toast { position: fixed; bottom: 25px; left: 50%; transform: translateX(-50%); background: #111827dd; backdrop-filter: blur(8px); padding: 10px 24px; border-radius: 60px; z-index: 1000; font-weight: bold; pointer-events: none; transition: 0.2s; color: white; }
-        @media (max-width: 800px) { .flex { flex-direction: column; } .quiz-buttons button { font-size: 0.8rem; padding: 8px; } .game-controls button { padding: 8px 12px; font-size: 0.9rem; } }
+        @media (max-width: 800px) { .flex { flex-direction: column; } .quiz-buttons button { font-size: 0.8rem; padding: 8px; } .game-controls button { font-size: 1.2rem; padding: 8px 25px; } }
     </style>
 </head>
 <body>
@@ -54,19 +57,19 @@
         { id: "ltc", name: "Litecoin", sym: "LTC", rub: 7300, vol: 0.026 }
     ];
 
-    // ======================== ГЕНЕРАТОР ВОПРОСОВ ========================
+    // ======================== ГЕНЕРАТОР ВОПРОСОВ (200+ комбинаций) ========================
     const qPool = {
-        common: ["Рискнуть или перестраховаться?", "Согласиться на сделку?", "Взяться за проект?", "Использовать информацию?", "Внедрять инновацию?"],
-        hacker: ["Сообщить об уязвимости?", "Защищать сервер?", "Взломать аккаунт?", "Украсть код?", "Закрыть бэкдор?"],
-        criminal: ["Идти коротким путём?", "Бежать или прятаться?", "Молчать в полиции?", "Уйти или устранить свидетеля?"],
-        doctor: ["Рискнуть на операции?", "Указать на ошибку?", "Дать лекарства?", "Браться за сложную операцию?"],
-        engineer: ["Закрыть мост?", "Оригинал или аналог?", "Сделать качественно?", "Тестировать материал?"],
-        streamer: ["Забанить хейтера?", "Сменить контент?", "Отказаться от рекламы?", "Играть в новинку?"],
-        trader: ["Купить на падении?", "Использовать плечо?", "Зафиксировать убыток?", "Довериться аналитике?"],
-        miner: ["Вложиться в железо?", "Майнить соло?", "Продать оборудование?", "Скупать видеокарты?"],
-        driver: ["Ехать коротким путём?", "Ночной рейс?", "Взять попутчика?", "Нарушить скоростной режим?"]
+        common: ["Рискнуть или перестраховаться?", "Согласиться на сделку?", "Взяться за проект?", "Использовать информацию?", "Внедрять инновацию?", "Инвестировать?", "Уволиться?", "Нанять помощника?", "Сменить профессию?", "Открыть бизнес?"],
+        hacker: ["Сообщить об уязвимости?", "Защищать сервер?", "Взломать аккаунт?", "Украсть код?", "Закрыть бэкдор?", "Использовать троян?", "Слить базу?", "Шифровать файлы?"],
+        criminal: ["Идти коротким путём?", "Бежать или прятаться?", "Молчать в полиции?", "Уйти или устранить?", "Взять крупную сумму?", "Действовать в одиночку?", "Хранить наличку?", "Купить документы?"],
+        doctor: ["Рискнуть на операции?", "Указать на ошибку?", "Дать лекарства?", "Браться за сложную операцию?", "Сообщить об ошибке?", "Спасать безнадёжного?", "Взять взятку?"],
+        engineer: ["Закрыть мост?", "Оригинал или аналог?", "Сделать качественно?", "Тестировать материал?", "Переделывать брак?", "Нарушить ТБ?", "Взять сверхурочную?"],
+        streamer: ["Забанить хейтера?", "Сменить контент?", "Отказаться от рекламы?", "Играть в новинку?", "Включить подписку?", "Провести розыгрыш?"],
+        trader: ["Купить на падении?", "Использовать плечо?", "Зафиксировать убыток?", "Довериться аналитике?", "Купить фьючерсы?", "Шортить рынок?"],
+        miner: ["Вложиться в железо?", "Майнить соло?", "Продать оборудование?", "Скупать видеокарты?", "Переключить алгоритм?", "Дешёвое электричество?"],
+        driver: ["Ехать коротким путём?", "Ночной рейс?", "Взять попутчика?", "Нарушить скоростной?", "Обслуживать самому?", "Сдать назад?"]
     };
-    for(let p in qPool) while(qPool[p].length < 30) qPool[p].push(...qPool[p]);
+    for(let p in qPool) while(qPool[p].length < 40) qPool[p].push(...qPool[p]);
 
     function getRandomQ(jobId) {
         let ans = [
@@ -92,11 +95,20 @@
         driver: { name: "🚛 Дальнобойщик", salary: 470, q:()=>getRandomQ("driver") }
     };
 
-    // ======================== ИГРОКИ ========================
+    // ======================== ИГРОКИ И ИСТОРИЯ ========================
     let players = {}, currentUser = null, pendingWork = null, cryptoPrices = {};
-    function save() { localStorage.setItem("cryptov6", JSON.stringify(players)); }
+    
+    function addHistory(user, text, amount) {
+        if(!players[user]) return;
+        if(!players[user].history) players[user].history = [];
+        players[user].history.unshift({ text, amount, time: new Date().toLocaleTimeString() });
+        if(players[user].history.length > 50) players[user].history.pop();
+        save();
+    }
+    
+    function save() { localStorage.setItem("cryptov7", JSON.stringify(players)); }
     function load() {
-        let raw = localStorage.getItem("cryptov6");
+        let raw = localStorage.getItem("cryptov7");
         if(raw) {
             players = JSON.parse(raw);
             for(let p in players) {
@@ -108,6 +120,7 @@
                 if(u.vip===undefined) u.vip=false;
                 if(u.isAdmin===undefined) u.isAdmin=false;
                 if(!u.job) u.job="hacker";
+                if(!u.history) u.history = [];
                 u.totalEarn = u.totalEarn || u.rub;
                 u.workAnswers = u.workAnswers || 0;
             }
@@ -137,7 +150,9 @@
         let isCorrect = (selected === ctx.q.correct);
         let success = isCorrect && Math.random() <= ctx.q.chance;
         let earn = ctx.salary + (success ? ctx.q.bonus : 0);
-        u.rub += earn; u.totalEarn += earn; u.workAnswers++; save();
+        u.rub += earn; u.totalEarn += earn; u.workAnswers++; 
+        addHistory(currentUser, `Работа: ${success ? "✓ +бонус" : "✓ база"} +${earn}₽`, earn);
+        save();
         toast(success ? `✅ +${earn}₽ (бонус!)` : `⚠️ +${earn}₽`, !success);
         pendingWork = null; render();
     }
@@ -147,16 +162,18 @@
         let u = players[currentUser];
         if(!u || u.banned || u.jail) { toast("Недоступно", true); return; }
         let gain = u.vip ? 14 : 8;
-        u.rub += gain; u.totalEarn += gain; save();
+        u.rub += gain; u.totalEarn += gain;
+        addHistory(currentUser, `Тап по монете +${gain}₽`, gain);
+        save();
         toast(`💰 +${gain}₽`, false);
         render();
     }
 
-    function buy(id, amt) { let u=players[currentUser]; if(!u||u.banned||u.jail) return; let p=getPrice(id), cost=amt*p; if(u.rub>=cost&&amt>0){ u.rub-=cost; u.crypto[id]=(u.crypto[id]||0)+amt; toast(`Куплено ${amt.toFixed(5)} ${id}`,false); save(); render(); } else toast("Не хватает",true); }
-    function sell(id, amt) { let u=players[currentUser]; if(!u||u.banned||u.jail) return; let have=u.crypto[id]||0; if(have>=amt&&amt>0){ u.crypto[id]-=amt; u.rub+=amt*getPrice(id); toast(`Продано ${amt.toFixed(5)} ${id}`,false); save(); render(); } else toast("Недостаточно",true); }
-    function transferRub(to, amt) { let f=players[currentUser]; if(!f||f.banned||f.jail) return; let t=players[to]; if(!t) return toast("Нет игрока",true); if(f.rub>=amt&&amt>0){ f.rub-=amt; t.rub+=amt; save(); toast(`Перевод ${amt}₽ -> ${to}`,false); render(); } else toast("Недостаточно",true); }
-    function transferCrypto(to, id, amt) { let f=players[currentUser]; if(!f||f.banned||f.jail) return; let t=players[to]; if(!t) return toast("Нет игрока",true); let have=f.crypto[id]||0; if(have>=amt&&amt>0){ f.crypto[id]-=amt; t.crypto[id]=(t.crypto[id]||0)+amt; save(); toast(`Переведено ${amt} ${id}`,false); render(); } else toast("Недостаточно",true); }
-    function daily() { let last=localStorage.getItem(`d_${currentUser}`), now=Date.now(); if(last && now-parseInt(last)<86400000) return toast("Уже было",true); let u=players[currentUser], reward=450+(u.vip?300:0); u.rub+=reward; localStorage.setItem(`d_${currentUser}`,now); save(); toast(`🎁 +${reward}₽`,false); render(); }
+    function buy(id, amt) { let u=players[currentUser]; if(!u||u.banned||u.jail) return; let p=getPrice(id), cost=amt*p; if(u.rub>=cost&&amt>0){ u.rub-=cost; u.crypto[id]=(u.crypto[id]||0)+amt; addHistory(currentUser, `Куплено ${amt.toFixed(5)} ${id.toUpperCase()} за ${cost.toFixed(2)}₽`, -cost); toast(`Куплено ${amt.toFixed(5)} ${id}`,false); save(); render(); } else toast("Не хватает",true); }
+    function sell(id, amt) { let u=players[currentUser]; if(!u||u.banned||u.jail) return; let have=u.crypto[id]||0; if(have>=amt&&amt>0){ u.crypto[id]-=amt; let gain=amt*getPrice(id); u.rub+=gain; addHistory(currentUser, `Продано ${amt.toFixed(5)} ${id.toUpperCase()} +${gain.toFixed(2)}₽`, gain); toast(`Продано ${amt.toFixed(5)} ${id}`,false); save(); render(); } else toast("Недостаточно",true); }
+    function transferRub(to, amt) { let f=players[currentUser]; if(!f||f.banned||f.jail) return; let t=players[to]; if(!t) return toast("Нет игрока",true); if(f.rub>=amt&&amt>0){ f.rub-=amt; t.rub+=amt; addHistory(currentUser, `Перевод ${amt}₽ игроку ${to}`, -amt); addHistory(to, `Получено ${amt}₽ от ${currentUser}`, amt); save(); toast(`Перевод ${amt}₽ -> ${to}`,false); render(); } else toast("Недостаточно",true); }
+    function transferCrypto(to, id, amt) { let f=players[currentUser]; if(!f||f.banned||f.jail) return; let t=players[to]; if(!t) return toast("Нет игрока",true); let have=f.crypto[id]||0; if(have>=amt&&amt>0){ f.crypto[id]-=amt; t.crypto[id]=(t.crypto[id]||0)+amt; addHistory(currentUser, `Перевод ${amt.toFixed(5)} ${id.toUpperCase()} игроку ${to}`, 0); addHistory(to, `Получено ${amt.toFixed(5)} ${id.toUpperCase()} от ${currentUser}`, 0); save(); toast(`Переведено ${amt} ${id}`,false); render(); } else toast("Недостаточно",true); }
+    function daily() { let last=localStorage.getItem(`d_${currentUser}`), now=Date.now(); if(last && now-parseInt(last)<86400000) return toast("Уже было",true); let u=players[currentUser], reward=450+(u.vip?300:0); u.rub+=reward; addHistory(currentUser, `Ежедневная награда +${reward}₽`, reward); localStorage.setItem(`d_${currentUser}`,now); save(); toast(`🎁 +${reward}₽`,false); render(); }
 
     // АДМИНКА
     let adminTarget = "";
@@ -164,25 +181,20 @@
     function banTarget() { if(players[currentUser]?.isAdmin && players[adminTarget]) { players[adminTarget].banned = !players[adminTarget].banned; toast(`${adminTarget} ${players[adminTarget].banned?"забанен":"разбанен"}`,false); save(); render(); } }
     function jailTarget(state) { if(players[currentUser]?.isAdmin && players[adminTarget]) { players[adminTarget].jail = state; toast(`${adminTarget} ${state?"в тюрьме":"свободен"}`,false); save(); render(); } }
     function vipTarget(state) { if(players[currentUser]?.isAdmin && players[adminTarget]) { players[adminTarget].vip = state; toast(`VIP ${state?"выдан":"снят"} у ${adminTarget}`,false); save(); render(); } }
-    function giveRub(amt) { if(players[currentUser]?.isAdmin && players[adminTarget] && amt>0) { players[adminTarget].rub += amt; toast(`+${amt}₽ ${adminTarget}`,false); save(); render(); } }
-    function giveCrypto(id, amt) { if(players[currentUser]?.isAdmin && players[adminTarget] && amt>0) { players[adminTarget].crypto[id] = (players[adminTarget].crypto[id]||0)+amt; toast(`+${amt} ${id} ${adminTarget}`,false); save(); render(); } }
+    function giveRub(amt) { if(players[currentUser]?.isAdmin && players[adminTarget] && amt>0) { players[adminTarget].rub += amt; addHistory(adminTarget, `Админ выдал ${amt}₽`, amt); toast(`+${amt}₽ ${adminTarget}`,false); save(); render(); } }
+    function giveCrypto(id, amt) { if(players[currentUser]?.isAdmin && players[adminTarget] && amt>0) { players[adminTarget].crypto[id] = (players[adminTarget].crypto[id]||0)+amt; addHistory(adminTarget, `Админ выдал ${amt} ${id.toUpperCase()}`, 0); toast(`+${amt} ${id} ${adminTarget}`,false); save(); render(); } }
 
-    function register(login, pwd, job) { if(players[login]) return toast("Логин занят",true); let isAdmin = (login === "admin"); players[login] = { username:login, password:pwd, rub: isAdmin?999999:5000, crypto:{}, job, vip:false, banned:false, jail:false, totalEarn: isAdmin?999999:5000, workAnswers:0, isAdmin }; CRYPTO.forEach(c=>players[login].crypto[c.id]=0); if(isAdmin) players[login].crypto.btc = 1; save(); toast(`Аккаунт ${login} создан!`, false); return true; }
+    function register(login, pwd, job) { if(players[login]) return toast("Логин занят",true); let isAdmin = (login === "admin"); players[login] = { username:login, password:pwd, rub: isAdmin?999999:5000, crypto:{}, job, vip:false, banned:false, jail:false, totalEarn: isAdmin?999999:5000, workAnswers:0, isAdmin, history:[] }; CRYPTO.forEach(c=>players[login].crypto[c.id]=0); if(isAdmin) players[login].crypto.btc = 1; save(); toast(`Аккаунт ${login} создан!`, false); return true; }
     function login(login, pwd) { let u = players[login]; if(u && u.password === pwd) { if(u.banned) return toast("Забанен", true); currentUser = login; pendingWork = null; adminTarget = login; render(); toast(`Добро пожаловать, ${login}`, false); return true; } toast("Неверный логин/пароль", true); return false; }
     function logout() { currentUser = null; render(); }
     function leader() { return Object.entries(players).map(([n,p])=>{ let total = p.rub; CRYPTO.forEach(c=>total += (p.crypto[c.id]||0)*getPrice(c.id)); return { name:n, total, vip:p.vip }; }).sort((a,b)=>b.total-a.total).slice(0,12); }
 
-    // ======================== DOODLE JUMP PRO ========================
+    // ======================== DOODLE JUMP PRO (суперпрыжок, бусты) ========================
     let gameReq=null, canvas=null, ctx=null, gameActive=false;
     let dood = { x: 200, y: 300, w: 32, h: 32, vx: 0, vy: 0, angle: 0 };
     let platforms = [], boosts = [];
-    let score = 0, rewardGiven = 0, W = 400, H = 600;
-    let gyroX = 0, gyroMode = false;
+    let score = 0, finalScore = 0, W = 400, H = 600;
     let rocketActive = false, rocketTimer = 0;
-
-    if(window.DeviceOrientationEvent) {
-        window.addEventListener("deviceorientation", (e)=> { if(gyroMode) gyroX = Math.min(Math.max(e.gamma || 0, -30), 30); });
-    }
 
     function drawCoinWithFace(x, y, size, angle) {
         ctx.save();
@@ -210,68 +222,61 @@
 
     function initGame() {
         if(gameReq) cancelAnimationFrame(gameReq);
-        gameActive = true; score = 0; rewardGiven = 0; rocketActive = false;
-        dood = { x: W/2-16, y: H-120, w: 32, h: 32, vx: 0, vy: 0, angle: 0 };
+        gameActive = true; score = 0; finalScore = 0; rocketActive = false;
+        dood = { x: W/2-16, y: H-100, w: 32, h: 32, vx: 0, vy: 0, angle: 0 };
         platforms = [];
-        // базовая платформа внизу
         platforms.push({ x: W/2-40, y: H-40, w: 80, h: 12, type: "normal" });
-        for(let i=0;i<8;i++) platforms.push({ x: Math.random()*(W-70), y: H-120 - i*90, w: 65, h: 12, type: "normal" });
+        for(let i=0;i<10;i++) platforms.push({ x: Math.random()*(W-70), y: H-120 - i*100, w: 65, h: 12, type: "normal" });
         boosts = [];
         gameLoop();
     }
 
     function gameLoop() {
         if(!gameActive) return;
-        let move = gyroMode ? gyroX * 0.22 : dood.vx;
-        dood.x += move;
+        dood.x += dood.vx;
         if(dood.x < 0) dood.x = 0;
         if(dood.x + dood.w > W) dood.x = W - dood.w;
-        if(rocketActive) { dood.vy = -4; rocketTimer--; if(rocketTimer<=0) rocketActive=false; }
-        else dood.vy += 0.5;
+        if(rocketActive) { dood.vy = -4.5; rocketTimer--; if(rocketTimer<=0) rocketActive=false; }
+        else dood.vy += 0.45;
         dood.y += dood.vy;
-        dood.angle += 0.2;
+        dood.angle += 0.25;
         
         let onPlat = false;
         for(let i=0;i<platforms.length;i++) {
             let p = platforms[i];
             if(dood.vy>0 && dood.y+dood.h <= p.y+8 && dood.y+dood.h+dood.vy >= p.y && dood.x+dood.w > p.x && dood.x < p.x+p.w) {
-                dood.vy = -9;
+                dood.vy = -12.5;
                 dood.y = p.y - dood.h;
                 onPlat = true;
-                if(p.type === "spring") dood.vy = -13;
-                if(p.type === "coin") { score += 50; players[currentUser].rub += 50; save(); toast("🪙 +50₽ за монетку!", false); platforms.splice(i,1); }
+                if(p.type === "spring") dood.vy = -18;
+                if(p.type === "coin") { score += 50; players[currentUser].rub += 50; addHistory(currentUser, "🪙 Монетка в Doodle Jump +50₽", 50); save(); toast("🪙 +50₽ за монетку!", false); platforms.splice(i,1); }
                 break;
             }
         }
         for(let i=0;i<boosts.length;i++) {
             let b = boosts[i];
             if(dood.x+dood.w > b.x && dood.x < b.x+b.w && dood.y+dood.h > b.y && dood.y < b.y+b.h) {
-                if(b.type === "rocket") { rocketActive=true; rocketTimer=90; toast("🚀 РАКЕТА! Временный полёт!", false); }
-                if(b.type === "spring") { dood.vy = -13; toast("🔷 ПРУЖИНКА!", false); }
+                if(b.type === "rocket") { rocketActive=true; rocketTimer=100; toast("🚀 РАКЕТА! Временный полёт!", false); }
+                if(b.type === "spring") { dood.vy = -18; toast("🔷 ПРУЖИНКА! Супер прыжок!", false); }
                 boosts.splice(i,1); i--;
             }
         }
-        if(dood.y > H) { gameOver(); return; }
+        if(dood.y > H) { finalScore = Math.floor(score); gameOver(); return; }
         if(dood.y < H/3) {
             let offset = H/3 - dood.y;
             dood.y = H/3;
             for(let p of platforms) p.y += offset;
             for(let b of boosts) b.y += offset;
             score += Math.floor(offset);
-            // +1 рубль за метр
-            let addPerMeter = Math.floor(offset);
-            if(addPerMeter > 0 && players[currentUser]) { players[currentUser].rub += addPerMeter; players[currentUser].totalEarn += addPerMeter; save(); }
-            let newReward = Math.floor(score/1000);
-            if(newReward > rewardGiven) { let add = (newReward-rewardGiven)*1000; players[currentUser].rub += add; save(); toast(`🎮 +${add}₽ за ${Math.floor(score)} метров!`, false); rewardGiven = newReward; }
         }
         let highest = Math.min(...platforms.map(p=>p.y));
         if(highest > 80) {
             let r = Math.random();
             let type = "normal";
-            if(r < 0.08) type = "spring";
-            else if(r < 0.12) type = "coin";
-            platforms.push({ x: Math.random()*(W-70), y: highest-85, w: 65, h: 12, type: type });
-            if(Math.random()<0.06) boosts.push({ x: Math.random()*(W-50), y: highest-95, w: 40, h: 12, type: Math.random()<0.5?"rocket":"spring" });
+            if(r < 0.1) type = "spring";
+            else if(r < 0.15) type = "coin";
+            platforms.push({ x: Math.random()*(W-70), y: highest-90, w: 65, h: 12, type: type });
+            if(Math.random()<0.08) boosts.push({ x: Math.random()*(W-50), y: highest-100, w: 40, h: 12, type: Math.random()<0.5?"rocket":"spring" });
         }
         platforms = platforms.filter(p => p.y < H+100);
         boosts = boosts.filter(b => b.y < H+100);
@@ -290,19 +295,45 @@
             }
             drawCoinWithFace(dood.x, dood.y, dood.w, dood.angle);
             ctx.fillStyle = "#000"; ctx.font = "bold 18px monospace"; ctx.fillText(`Метры: ${Math.floor(score)}`, 10, 35);
-            ctx.fillStyle = "#fff"; ctx.shadowBlur=0;
-            if(rocketActive) { ctx.fillStyle = "#ff6600"; ctx.font = "bold 14px monospace"; ctx.fillText("🚀 РАКЕТА АКТИВНА!", W-120, 30); }
-            if(gyroMode) ctx.fillText("🎮 НАКЛОН ТЕЛЕФОНА", 10, 65);
-            else ctx.fillText("🎮 A/D или кнопки", 10, 65);
+            if(rocketActive) { ctx.fillStyle = "#ff6600"; ctx.font = "bold 14px monospace"; ctx.fillText("🚀 РАКЕТА!", W-100, 30); }
         }
         gameReq = requestAnimationFrame(gameLoop);
     }
-    function gameOver() { gameActive=false; if(gameReq) cancelAnimationFrame(gameReq); toast(`Игра окончена! Метры: ${Math.floor(score)}`,false); document.getElementById("gameModal")?.remove(); render(); }
-    function moveLeft() { if(!gyroMode && gameActive) dood.vx = -4.5; setTimeout(()=>{ if(gameActive && !gyroMode) dood.vx = 0; },100); }
-    function moveRight() { if(!gyroMode && gameActive) dood.vx = 4.5; setTimeout(()=>{ if(gameActive && !gyroMode) dood.vx = 0; },100); }
-    function toggleGyro() { gyroMode = !gyroMode; toast(gyroMode?"🎮 Наклон телефона включён":"🎮 Управление кнопками/клавишами",false); render(); }
+    function gameOver() { 
+        gameActive=false; 
+        if(gameReq) cancelAnimationFrame(gameReq); 
+        let reward = finalScore;
+        if(reward > 0 && players[currentUser]) { 
+            players[currentUser].rub += reward; 
+            players[currentUser].totalEarn += reward;
+            addHistory(currentUser, `🎮 Doodle Jump: ${finalScore} метров +${reward}₽`, reward);
+            save(); 
+            toast(`🎮 Игра окончена! Метры: ${finalScore} | +${reward}₽`, false); 
+        } else toast(`🎮 Игра окончена! Метры: ${finalScore}`, false);
+        document.getElementById("gameModal")?.remove(); 
+        render(); 
+    }
+    function moveLeft() { if(gameActive) dood.vx = -5.2; }
+    function moveRight() { if(gameActive) dood.vx = 5.2; }
+    function stopMove() { if(gameActive) dood.vx = 0; }
     function closeGame() { gameActive=false; if(gameReq) cancelAnimationFrame(gameReq); document.getElementById("gameModal")?.remove(); render(); }
-    function openGame() { if(!currentUser) return; if(document.getElementById("gameModal")) return; let modal = document.createElement("div"); modal.id="gameModal"; modal.className="game-modal"; modal.innerHTML = `<div class="game-container"><canvas id="gameCanvas" width="400" height="600"></canvas><div class="game-controls"><button id="leftBtn">◀ ЛЕВО</button><button id="rightBtn">ПРАВО ▶</button><button id="gyroBtn">🎮 НАКЛОН</button><button id="closeGame" class="danger">✖ ВЫЙТИ</button></div></div>`; document.body.appendChild(modal); canvas = document.getElementById("gameCanvas"); ctx = canvas.getContext("2d"); initGame(); document.getElementById("leftBtn")?.addEventListener("click", moveLeft); document.getElementById("rightBtn")?.addEventListener("click", moveRight); document.getElementById("gyroBtn")?.addEventListener("click", toggleGyro); document.getElementById("closeGame")?.addEventListener("click", closeGame); window.addEventListener("keydown", (e)=>{ if(!gameActive) return; if(e.code==="ArrowLeft"||e.code==="KeyA") { e.preventDefault(); if(!gyroMode) moveLeft(); } if(e.code==="ArrowRight"||e.code==="KeyD") { e.preventDefault(); if(!gyroMode) moveRight(); } }); }
+    function openGame() { 
+        if(!currentUser) return; 
+        if(document.getElementById("gameModal")) return; 
+        let modal = document.createElement("div"); modal.id="gameModal"; modal.className="game-modal"; 
+        modal.innerHTML = `<div class="game-container"><canvas id="gameCanvas" width="400" height="600"></canvas><div class="game-controls"><button id="leftBtn">◀</button><button id="rightBtn">▶</button><button id="closeGame" class="danger">✖</button></div></div>`; 
+        document.body.appendChild(modal); 
+        canvas = document.getElementById("gameCanvas"); ctx = canvas.getContext("2d"); 
+        initGame(); 
+        let left = document.getElementById("leftBtn"), right = document.getElementById("rightBtn");
+        left.addEventListener("mousedown", moveLeft); left.addEventListener("touchstart", moveLeft);
+        right.addEventListener("mousedown", moveRight); right.addEventListener("touchstart", moveRight);
+        left.addEventListener("mouseup", stopMove); left.addEventListener("touchend", stopMove);
+        right.addEventListener("mouseup", stopMove); right.addEventListener("touchend", stopMove);
+        document.getElementById("closeGame")?.addEventListener("click", closeGame);
+        window.addEventListener("keydown", (e)=>{ if(!gameActive) return; if(e.code==="ArrowLeft"||e.code==="KeyA") { e.preventDefault(); moveLeft(); } if(e.code==="ArrowRight"||e.code==="KeyD") { e.preventDefault(); moveRight(); } });
+        window.addEventListener("keyup", (e)=>{ if(e.code==="ArrowLeft"||e.code==="KeyA"||e.code==="ArrowRight"||e.code==="KeyD") stopMove(); });
+    }
 
     // ======================== ОТРИСОВКА ========================
     function render() {
@@ -317,8 +348,9 @@
         let u=players[currentUser], isAdmin=u.isAdmin, topList=leader();
         let cryptoHtml = CRYPTO.map(c=>{ let p=cryptoPrices[c.id]||{price:c.rub, change:0, trend:"up"}; return `<div class="crypto-row"><span><b>${c.sym}</b> ${c.name}</span><span>${p.price.toFixed(2)}₽ ${p.trend==="up"?"📈":"📉"} <span class="${p.trend==="up"?"trend-up":"trend-down"}">${p.change>0?'+':''}${p.change.toFixed(1)}%</span></span><span><input id="a_${c.id}" size="5" type="number" step="0.001" value="0.01"/><button onclick="buy('${c.id}', parseFloat(document.getElementById('a_${c.id}').value))">Купить</button><button onclick="sell('${c.id}', parseFloat(document.getElementById('a_${c.id}').value))">Продать</button><button onclick="let t=prompt('Игрок'); if(t) transferCrypto(t,'${c.id}',parseFloat(document.getElementById('a_${c.id}').value))">Перевод</button></span></div>`; }).join('');
         let workHtml = ""; if(pendingWork && pendingWork.username===currentUser && !u.isAdmin) { let q=pendingWork.q; workHtml = `<div class="work-panel"><h3>💼 ${JOBS[u.job].name}</h3><p>❓ ${q.text}</p><div class="quiz-buttons"><button onclick="answer('${q.optA.replace(/'/g,"\\'")}')">✅ ${q.optA}</button><button onclick="answer('${q.optB.replace(/'/g,"\\'")}')">✅ ${q.optB}</button></div><small>База ${pendingWork.salary}₽ + бонус ${q.bonus}₽</small></div>`; } else if(!u.isAdmin && !u.banned && !u.jail) workHtml = `<div class="work-panel"><h3>💼 Работа</h3><small>Каждые 15 сек — новый вопрос. Отвечай кнопками!</small></div>`; else if(u.isAdmin) workHtml = `<div class="work-panel"><h3>👑 Администратор</h3><small>У вас нет работы, вы управляете миром</small></div>`;
-        let adminHtml = ""; if(isAdmin) { let userList = Object.keys(players).map(n=>`<option value="${n}" ${adminTarget===n?"selected":""}>${n}</option>`).join(''); adminHtml = `<div class="card admin-card"><h3>⚡ АДМИН-ПАНЕЛЬ</h3><select id="adminSelect">${userList}</select><button onclick="setTarget(document.getElementById('adminSelect').value)">Выбрать игрока</button><div style="margin-top:12px"><b>Цель: ${adminTarget || "не выбран"}</b></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><input id="rubAmt" placeholder="сумма" size="6"/><button onclick="giveRub(parseFloat(document.getElementById('rubAmt').value))">Выдать рубли</button><input id="cryptoAmt" placeholder="кол-во" size="5"/><select id="cryptoSel">${CRYPTO.map(c=>`<option value="${c.id}">${c.sym}</option>`).join('')}</select><button onclick="giveCrypto(document.getElementById('cryptoSel').value, parseFloat(document.getElementById('cryptoAmt').value))">Выдать крипту</button><button onclick="banTarget()">🚫 Бан/разбан</button><button onclick="jailTarget(true)">🚔 Посадить</button><button onclick="jailTarget(false)">🔓 Освободить</button><button onclick="vipTarget(true)">💎 Выдать VIP</button><button onclick="vipTarget(false)">❌ Снять VIP</button></div></div>`; }
-        root.innerHTML = `<div class="col"><div class="card"><div><h2>👤 ${currentUser} ${u.vip?'💎 VIP':''} ${u.jail?'🚔 ТЮРЬМА':''}</h2><div style="font-size:2rem;color:#FFD966">${u.rub.toFixed(2)} ₽</div><small>Капитал: ≈ ${topList.find(l=>l.name===currentUser)?.total.toFixed(2)||0}₽</small><button onclick="daily()">🎁 Ежедневно</button> <button onclick="logout()">Выйти</button> <button class="game-btn" onclick="openGame()">🎮 Doodle Jump Pro</button></div><div class="tap-area" id="tapZone"><div class="coin">🪙💰</div><h3>ТАПАЙ МОНЕТУ</h3><span>+${u.vip?14:8}₽</span></div>${workHtml}</div><div class="card"><h3>📊 КРИПТОБИРЖА</h3>${cryptoHtml}<div style="margin-top:12px"><input id="trTo" placeholder="игрок"/><input id="trAmt" placeholder="сумма"/><button onclick="transferRub(document.getElementById('trTo').value, parseFloat(document.getElementById('trAmt').value))">Перевести рубли</button></div></div></div><div class="col-right">${adminHtml}<div class="card"><h3>🏆 ТОП КАПИТАЛ</h3>${topList.map(l=>`<div>${l.name} ${l.vip?'💎':''}: ${l.total.toFixed(2)}₽</div>`).join('')}</div><div class="card"><h3>📜 ПРАВИЛА</h3><p>✅ Тапай + работа (кнопки)<br>💰 Крипта с живыми курсами<br>🎮 Doodle Jump: A/D или стрелки / наклон телефона<br>👑 Админ: при регистрации логин "admin"<br>🔷 Пружинки/ракеты/монетки</p></div></div>`;
+        let historyHtml = `<div class="history-list">${(u.history || []).slice(0,20).map(h=>`<div class="history-item">${h.time} ${h.text}</div>`).join('') || "<i>История пуста</i>"}</div>`;
+        let adminHtml = ""; if(isAdmin) { let userList = Object.keys(players).map(n=>`<option value="${n}" ${adminTarget===n?"selected":""}>${n}</option>`).join(''); adminHtml = `<div class="card admin-card"><h3>⚡ АДМИН-ПАНЕЛЬ</h3><select id="adminSelect">${userList}</select><button onclick="setTarget(document.getElementById('adminSelect').value)">Выбрать</button><div style="margin-top:12px"><b>Цель: ${adminTarget || "не выбран"}</b></div><div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:12px"><input id="rubAmt" placeholder="сумма" size="6"/><button onclick="giveRub(parseFloat(document.getElementById('rubAmt').value))">Рубли</button><input id="cryptoAmt" placeholder="кол-во" size="5"/><select id="cryptoSel">${CRYPTO.map(c=>`<option value="${c.id}">${c.sym}</option>`).join('')}</select><button onclick="giveCrypto(document.getElementById('cryptoSel').value, parseFloat(document.getElementById('cryptoAmt').value))">Крипта</button><button onclick="banTarget()">🚫 Бан</button><button onclick="jailTarget(true)">🚔 Посадить</button><button onclick="jailTarget(false)">🔓 Свобода</button><button onclick="vipTarget(true)">💎 VIP</button><button onclick="vipTarget(false)">❌ Снять VIP</button></div></div>`; }
+        root.innerHTML = `<div class="col"><div class="card"><div><h2>👤 ${currentUser} ${u.vip?'💎 VIP':''} ${u.jail?'🚔 ТЮРЬМА':''}</h2><div style="font-size:2rem;color:#FFD966">${u.rub.toFixed(2)} ₽</div><small>Капитал: ≈ ${topList.find(l=>l.name===currentUser)?.total.toFixed(2)||0}₽</small><button onclick="daily()">🎁 Ежедневно</button> <button onclick="logout()">Выйти</button> <button class="game-btn" onclick="openGame()">🎮 Doodle Jump</button></div><div class="tap-area" id="tapZone"><div class="coin">🪙💰</div><h3>ТАПАЙ МОНЕТУ</h3><span>+${u.vip?14:8}₽</span></div>${workHtml}</div><div class="card"><h3>📊 КРИПТОБИРЖА</h3>${cryptoHtml}<div style="margin-top:12px"><input id="trTo" placeholder="игрок"/><input id="trAmt" placeholder="сумма"/><button onclick="transferRub(document.getElementById('trTo').value, parseFloat(document.getElementById('trAmt').value))">Перевести рубли</button></div></div></div><div class="col-right">${adminHtml}<div class="card"><h3>🏆 ТОП КАПИТАЛ</h3>${topList.map(l=>`<div>${l.name} ${l.vip?'💎':''}: ${l.total.toFixed(2)}₽</div>`).join('')}</div><div class="card"><h3>📜 ИСТОРИЯ ПЛАТЕЖЕЙ</h3>${historyHtml}</div><div class="card"><h3>📜 ПРАВИЛА</h3><p>✅ Тапай + работа (кнопки)<br>💰 Крипта с живыми курсами<br>🎮 Doodle Jump: A/D или стрелки / кнопки<br>👑 Админ: регистрация с логином "admin"<br>🔷 Бусты: пружинки, ракеты, монетки</p></div></div>`;
         document.getElementById("tapZone")?.addEventListener("click", tap);
         if(isAdmin && document.getElementById("adminSelect")) document.getElementById("adminSelect").value = adminTarget;
     }
